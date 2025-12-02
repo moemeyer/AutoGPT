@@ -36,19 +36,12 @@ command_exists() {
 # Display banner
 echo -e "${GREEN}"
 cat << "EOF"
-   _____         __       _____________________ 
-  /  _  \  __ __|  |_ ___/  _____/\______   \_ |__
- /  /_\  \|  |  \  |  \  /   \  ___ |     ___/| __ \
-/    |    \  |  /  |  /\ \    \_\  \|    |    | \_\ \
-\____|__  /____/|____/  \__\______  /|____|    |___  /
-        \/                        \/               \/
-  ____  __.                  ________..__                
- |    |/ _|____   ____ ______\_   __ \  |__  _____  ______  ____  
- |      <_/ __ \_/ __ \\____ \|    | \/  |  \/  __ \/  ___//  _ \ 
- |    |  \  ___/\  ___/|  |_> >   |  |   Y  \  ___/\___ \ >  <_> )
- |____|__ \___  >\___  >   __/|___|  |___|  /\___  >____  / \____/
-         \/   \/     \/|__|                \/     \/     \/        
-
+    ___         __       ______________ ______
+   /   | __  __/ /_____  / ____/ __ \  /_  __/
+  / /| |/ / / / __/ __ \/ / __/ /_/ / / / / 
+ / ___ / /_/ / /_/ /_/ / /_/ / ____/ / / /  
+/_/  |_\__,_/\__/\____/\____/_/     /_/     
+                                             
 Repository Synchronization Script
 EOF
 echo -e "${NC}"
@@ -107,12 +100,18 @@ echo ""
 # Step 4: Show comparison
 print_info "Step 4: Analyzing differences with upstream..."
 
-COMMITS_BEHIND=$(git rev-list --count HEAD..upstream/master 2>/dev/null || echo "unknown")
-COMMITS_AHEAD=$(git rev-list --count upstream/master..HEAD 2>/dev/null || echo "unknown")
+# Detect default branch name (master or main)
+DEFAULT_BRANCH=$(git remote show upstream 2>/dev/null | grep 'HEAD branch' | cut -d' ' -f5)
+if [ -z "$DEFAULT_BRANCH" ]; then
+    DEFAULT_BRANCH="master"
+fi
+
+COMMITS_BEHIND=$(git rev-list --count HEAD..upstream/$DEFAULT_BRANCH 2>/dev/null || echo "unknown")
+COMMITS_AHEAD=$(git rev-list --count upstream/$DEFAULT_BRANCH..HEAD 2>/dev/null || echo "unknown")
 
 print_info "Your fork is:"
-echo -e "  - ${RED}$COMMITS_BEHIND commits behind${NC} upstream/master"
-echo -e "  - ${YELLOW}$COMMITS_AHEAD commits ahead${NC} of upstream/master"
+echo -e "  - ${RED}$COMMITS_BEHIND commits behind${NC} upstream/$DEFAULT_BRANCH"
+echo -e "  - ${YELLOW}$COMMITS_AHEAD commits ahead${NC} of upstream/$DEFAULT_BRANCH"
 
 echo ""
 
@@ -181,13 +180,13 @@ case $choice in
             git branch "$BACKUP_BRANCH"
             print_success "Created safety backup: $BACKUP_BRANCH"
             
-            print_info "Resetting to upstream/master..."
-            git checkout master 2>/dev/null || git checkout -b master
-            git reset --hard upstream/master
-            print_success "Repository reset to upstream/master"
+            print_info "Resetting to upstream/$DEFAULT_BRANCH..."
+            git checkout $DEFAULT_BRANCH 2>/dev/null || git checkout -b $DEFAULT_BRANCH
+            git reset --hard upstream/$DEFAULT_BRANCH
+            print_success "Repository reset to upstream/$DEFAULT_BRANCH"
             
             print_warning "To complete sync, you need to force push:"
-            echo "  git push --force origin master"
+            echo "  git push --force origin $DEFAULT_BRANCH"
             print_warning "This requires proper GitHub authentication"
         else
             print_info "Reset cancelled."
@@ -205,7 +204,7 @@ case $choice in
             print_success "Created backup: $BACKUP_BRANCH"
             
             print_info "Attempting merge..."
-            if git merge upstream/master --no-edit; then
+            if git merge upstream/$DEFAULT_BRANCH --no-edit; then
                 print_success "Merge completed successfully!"
             else
                 print_error "Merge has conflicts. Resolve them and run:"

@@ -93,8 +93,8 @@ git reset --hard upstream/master
 # Force push (⚠️ This overwrites history!)
 git push --force origin master
 
-# Clean up
-git branch -D copilot/review-repo-and-codebase 2>/dev/null || true
+# Clean up old working branches if needed
+# git branch -D <old-branch-name> 2>/dev/null || true
 ```
 
 ### Step 3: Clone Fresh Repository
