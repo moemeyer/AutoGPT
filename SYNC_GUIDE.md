@@ -83,15 +83,15 @@ Keep the fork but reset it completely:
 # Fetch latest from upstream
 git fetch upstream
 
-# Backup current branch
+# Backup current branch (use main or master depending on your repo)
 git branch archive-old-fork
 
-# Reset master to match upstream
-git checkout master
-git reset --hard upstream/master
+# Reset to match upstream (replace 'master' with 'main' if needed)
+git checkout master  # or: git checkout main
+git reset --hard upstream/master  # or: upstream/main
 
 # Force push (⚠️ This overwrites history!)
-git push --force origin master
+git push --force origin master  # or: origin/main
 
 # Clean up old working branches if needed
 # git branch -D <old-branch-name> 2>/dev/null || true
